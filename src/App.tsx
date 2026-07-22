@@ -4,9 +4,9 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  ComposedChart,
   Legend,
   Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -20,6 +20,7 @@ import {
   PLAN,
   REPLIES,
   SCORECARD,
+  TRENDS,
   type HomeTab,
   type ReplyDraft,
 } from "./data";
@@ -55,6 +56,132 @@ function CopyReply({ reply }: { reply: ReplyDraft }) {
   );
 }
 
+function RatingTrendsSection() {
+  const glassdoorChart = TRENDS.glassdoor.map((d) => ({
+    period: d.label,
+    company: d.company,
+    ceo: d.ceo,
+  }));
+
+  return (
+    <section className="stack tight">
+      <h2>Rating trends — company & CEO</h2>
+      <p className="muted">
+        Glassdoor snapshots from Wayback (Mar 2022, Feb 2026) and live Jul 22, 2026.
+        Indeed company averages are the platform’s published year buckets.
+      </p>
+
+      <div className="two-col">
+        <div>
+          <h3>Glassdoor — company rating & CEO approval</h3>
+          <div className="chart">
+            <ResponsiveContainer width="100%" height={280}>
+              <ComposedChart data={glassdoorChart} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a3344" />
+                <XAxis dataKey="period" stroke="#9aa4b2" />
+                <YAxis
+                  yAxisId="company"
+                  domain={[0, 5]}
+                  stroke="#f0a202"
+                  label={{ value: "Company (★)", angle: -90, position: "insideLeft", fill: "#9aa4b2" }}
+                />
+                <YAxis
+                  yAxisId="ceo"
+                  orientation="right"
+                  domain={[50, 100]}
+                  stroke="#4f8cff"
+                  label={{ value: "CEO %", angle: 90, position: "insideRight", fill: "#9aa4b2" }}
+                />
+                <Tooltip />
+                <Legend />
+                <Line
+                  yAxisId="company"
+                  type="monotone"
+                  dataKey="company"
+                  name="Company rating"
+                  stroke="#f0a202"
+                  strokeWidth={2.5}
+                  dot={{ r: 5 }}
+                  connectNulls
+                />
+                <Line
+                  yAxisId="ceo"
+                  type="monotone"
+                  dataKey="ceo"
+                  name="CEO approval %"
+                  stroke="#4f8cff"
+                  strokeWidth={2.5}
+                  dot={{ r: 5 }}
+                  connectNulls
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="muted">
+            Company: 3.1 → 3.9 → 3.6. CEO approval: 86% (Feb) → 80% (Jul). Mar 2022 CEO % not
+            available in the archive snapshot.
+          </p>
+        </div>
+
+        <div>
+          <h3>Indeed — company rating by year</h3>
+          <div className="chart">
+            <ResponsiveContainer width="100%" height={280}>
+              <ComposedChart data={TRENDS.indeedCompanyByYear}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a3344" />
+                <XAxis dataKey="period" stroke="#9aa4b2" />
+                <YAxis domain={[0, 5]} stroke="#9aa4b2" />
+                <Tooltip />
+                <Legend />
+                <ReferenceLine y={3.4} stroke="#9aa4b2" strokeDasharray="4 4" label="Current overall" />
+                <Bar dataKey="company" name="Company avg (★)" fill="#4f8cff" radius={4} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="muted">
+            Climbed through 2025 (4.5), then 2026 YTD fell to 1.0 on a thin early sample. Current
+            CEO approval on Indeed is 79% (no public yearly CEO series).
+          </p>
+        </div>
+      </div>
+
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th>Platform</th>
+              <th>Company rating</th>
+              <th>CEO approval</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {TRENDS.glassdoor.map((row) => (
+              <tr key={`gd-${row.period}`}>
+                <td>{row.label}</td>
+                <td>Glassdoor</td>
+                <td>{row.company.toFixed(1)}</td>
+                <td>{row.ceo == null ? "—" : `${row.ceo}%`}</td>
+                <td>{row.source}</td>
+              </tr>
+            ))}
+            {TRENDS.indeedCompanyByYear.map((row) => (
+              <tr key={`in-${row.period}`}>
+                <td>{row.period}</td>
+                <td>Indeed</td>
+                <td>{row.company.toFixed(2)}</td>
+                <td>{row.period === "2026" ? "79% (current)" : "—"}</td>
+                <td>Indeed rating overview</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function OverviewTab() {
   return (
     <div className="stack">
@@ -85,6 +212,8 @@ function OverviewTab() {
           <div className="stat-label">Indeed wellbeing · {BEONE.indeed.wellbeingLabel}</div>
         </div>
       </div>
+
+      <RatingTrendsSection />
 
       <section>
         <h2>Glassdoor — main issues & fixes</h2>
@@ -269,6 +398,51 @@ function GlassdoorTab() {
           {BEONE.glassdoor.interviewDifficulty}/5).
         </p>
       </div>
+
+      <section>
+        <h2>Company & CEO rating over time</h2>
+        <div className="chart">
+          <ResponsiveContainer width="100%" height={280}>
+            <ComposedChart
+              data={TRENDS.glassdoor.map((d) => ({
+                period: d.label,
+                company: d.company,
+                ceo: d.ceo,
+              }))}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#2a3344" />
+              <XAxis dataKey="period" stroke="#9aa4b2" />
+              <YAxis yAxisId="company" domain={[0, 5]} stroke="#f0a202" />
+              <YAxis yAxisId="ceo" orientation="right" domain={[50, 100]} stroke="#4f8cff" />
+              <Tooltip />
+              <Legend />
+              <Line
+                yAxisId="company"
+                type="monotone"
+                dataKey="company"
+                name="Company rating"
+                stroke="#f0a202"
+                strokeWidth={2.5}
+                dot={{ r: 5 }}
+                connectNulls
+              />
+              <Line
+                yAxisId="ceo"
+                type="monotone"
+                dataKey="ceo"
+                name="CEO approval %"
+                stroke="#4f8cff"
+                strokeWidth={2.5}
+                dot={{ r: 5 }}
+                connectNulls
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+        <p className="muted">
+          Left axis: company stars · Right axis: CEO approval % · Sources: Wayback + live
+        </p>
+      </section>
     </div>
   );
 }
@@ -319,27 +493,24 @@ function IndeedTab() {
           </div>
         </section>
         <section>
-          <h2>Average rating by year</h2>
+          <h2>Company rating by year & CEO</h2>
           <div className="chart">
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={BEONE.indeed.yearly}>
+              <ComposedChart data={TRENDS.indeedCompanyByYear}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3344" />
-                <XAxis dataKey="year" stroke="#9aa4b2" />
+                <XAxis dataKey="period" stroke="#9aa4b2" />
                 <YAxis domain={[0, 5]} stroke="#9aa4b2" />
                 <Tooltip />
-                <ReferenceLine y={3.4} stroke="#9aa4b2" strokeDasharray="4 4" label="Current" />
-                <Line
-                  type="monotone"
-                  dataKey="score"
-                  name="Indeed avg"
-                  stroke="#ff6b6b"
-                  strokeWidth={2}
-                  dot
-                />
-              </LineChart>
+                <Legend />
+                <ReferenceLine y={3.4} stroke="#9aa4b2" strokeDasharray="4 4" label="Current overall" />
+                <Bar dataKey="company" name="Company avg (★)" fill="#4f8cff" radius={4} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
-          <p className="muted">2025 peak then 2026 YTD collapse from early 1★ reviews.</p>
+          <p className="muted">
+            Company climbed to 4.5 in 2025, then 2026 YTD fell to 1.0. CEO approval is currently{" "}
+            {BEONE.indeed.ceo}% (Indeed does not publish a yearly CEO series).
+          </p>
         </section>
       </div>
 

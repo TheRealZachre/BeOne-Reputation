@@ -308,3 +308,43 @@ export const PLAN = [
     done: "Cadence running; Employer Center dashboards reviewed",
   },
 ];
+
+/** Verified public snapshots / yearly averages */
+export const TRENDS = {
+  glassdoor: [
+    {
+      period: "Mar 2022",
+      label: "Mar 2022",
+      company: 3.1,
+      ceo: null as number | null,
+      recommend: null as number | null,
+      source: "Wayback · BeiGene overview",
+    },
+    {
+      period: "Feb 2026",
+      label: "Feb 2026",
+      company: 3.9,
+      ceo: 86,
+      recommend: 73,
+      source: "Wayback · BeOne overview",
+    },
+    {
+      period: "Jul 2026",
+      label: "Jul 2026",
+      company: 3.6,
+      ceo: 80,
+      recommend: 59,
+      source: "Live · BeOne overview",
+    },
+  ],
+  indeedCompanyByYear: [
+    { period: "2022", company: 2.33 },
+    { period: "2023", company: 3.2 },
+    { period: "2024", company: 3.25 },
+    { period: "2025", company: 4.5 },
+    { period: "2026", company: 1.0 },
+  ],
+  indeedCeo: [
+    { period: "Jul 2026", ceo: 79 },
+  ],
+};

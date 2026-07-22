@@ -129,6 +129,15 @@ h1 {
   gap: 14px;
 }
 
+.stack.tight > h2 {
+  margin-bottom: 0;
+}
+
+h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+
 section h2,
 .card h3,
 .reply-card h3 {
