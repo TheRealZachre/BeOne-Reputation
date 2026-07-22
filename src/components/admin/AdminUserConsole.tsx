@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Shield, Trash2, UserPlus, Users } from "lucide-react";
+import { KeyRound, Send, Shield, Trash2, UserPlus, Users } from "lucide-react";
 import type { PublicUser, UserRole } from "@/lib/auth/types";
 
 const inputClassName =
@@ -26,6 +26,10 @@ export function AdminUserConsole({
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [resetLink, setResetLink] = useState<string | null>(null);
 
   const createTitle =
     scope === "analytics"
@@ -130,6 +134,87 @@ export function AdminUserConsole({
       setError("Something went wrong. Please try again.");
     } finally {
       setDeletingUserId(null);
+    }
+  }
+
+  function resetActionBanners() {
+    setActionError(null);
+    setActionMessage(null);
+    setResetLink(null);
+  }
+
+  async function handleSendReset(user: PublicUser) {
+    resetActionBanners();
+    setBusyUserId(user.id);
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send-reset" }),
+      });
+      const data = (await response.json()) as {
+        error?: string;
+        emailed?: boolean;
+        email?: string;
+        resetUrl?: string;
+      };
+
+      if (!response.ok) {
+        setActionError(data.error ?? "Could not send reset link.");
+        return;
+      }
+
+      if (data.emailed) {
+        setActionMessage(`Reset link emailed to ${data.email}.`);
+      } else {
+        setActionMessage(
+          `Reset link generated for ${data.email}. Email delivery isn't set up, so copy the secure link below and share it directly.`
+        );
+        if (data.resetUrl) setResetLink(data.resetUrl);
+      }
+    } catch {
+      setActionError("Something went wrong. Please try again.");
+    } finally {
+      setBusyUserId(null);
+    }
+  }
+
+  async function handleSetPassword(user: PublicUser) {
+    const label = user.username ? `@${user.username}` : user.email;
+    const newPassword = window.prompt(
+      `Set a new password for ${user.name} (${label}). Minimum 8 characters:`
+    );
+    if (newPassword === null) return;
+
+    resetActionBanners();
+
+    if (newPassword.length < 8) {
+      setActionError("Password must be at least 8 characters.");
+      return;
+    }
+
+    setBusyUserId(user.id);
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set-password", password: newPassword }),
+      });
+      const data = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        setActionError(data.error ?? "Could not update password.");
+        return;
+      }
+
+      setActionMessage(`Password updated for ${label}.`);
+      await refreshUsers();
+    } catch {
+      setActionError("Something went wrong. Please try again.");
+    } finally {
+      setBusyUserId(null);
     }
   }
 
@@ -240,6 +325,22 @@ export function AdminUserConsole({
           </div>
         </div>
 
+        {actionError && (
+          <p className="mt-4 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {actionError}
+          </p>
+        )}
+        {actionMessage && (
+          <div className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <p>{actionMessage}</p>
+            {resetLink && (
+              <p className="mt-2 break-all font-mono text-xs text-emerald-900">
+                {resetLink}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
@@ -278,23 +379,49 @@ export function AdminUserConsole({
                     {user.hasPassword ? "Password" : "—"}
                   </td>
                   <td className="px-3 py-3">
-                    <button
-                      type="button"
-                      onClick={() => void handleDelete(user)}
-                      disabled={
-                        deletingUserId === user.id ||
-                        user.id === currentUserId
-                      }
-                      title={
-                        user.id === currentUserId
-                          ? "You cannot delete your own account"
-                          : "Delete user"
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      {deletingUserId === user.id ? "Deleting…" : "Delete"}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void handleSendReset(user)}
+                        disabled={busyUserId === user.id || !user.hasPassword}
+                        title={
+                          user.hasPassword
+                            ? "Email or generate a password reset link"
+                            : "This account has no password to reset"
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-brand-indigo/30 px-3 py-1.5 text-xs font-medium text-brand-indigo transition-colors hover:bg-brand-indigo/5 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                        {busyUserId === user.id ? "Working…" : "Send reset"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleSetPassword(user)}
+                        disabled={busyUserId === user.id}
+                        title="Set a new password for this user"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-brand-ink/15 px-3 py-1.5 text-xs font-medium text-brand-ink/80 transition-colors hover:bg-brand-off-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <KeyRound className="h-3.5 w-3.5" />
+                        Reset password
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDelete(user)}
+                        disabled={
+                          deletingUserId === user.id ||
+                          user.id === currentUserId
+                        }
+                        title={
+                          user.id === currentUserId
+                            ? "You cannot delete your own account"
+                            : "Delete user"
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        {deletingUserId === user.id ? "Deleting…" : "Delete"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -24,7 +24,8 @@ export default async function PlatformAdminPage() {
           Platform Admin Console
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-brand-muted">
-          Create username and password accounts for BeOne Reputation.
+          Create accounts, send password reset links, and reset passwords for
+          BeOne Reputation.
         </p>
       </div>
 

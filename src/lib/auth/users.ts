@@ -243,3 +243,45 @@ export async function requestPasswordReset(
   // emailed instead of shown.
   return { sent: false, devResetUrl: resetUrl };
 }
+
+/**
+ * Admin action: generate a password reset link for a specific user and email
+ * it when a provider is configured. Returns the link when it could not be
+ * emailed so the admin can share it manually.
+ */
+export async function createUserResetLink(
+  userId: string,
+  origin?: string
+): Promise<{ sent: boolean; resetUrl: string; email: string }> {
+  const user = await findUserById(userId);
+  if (!user) throw new Error("User not found.");
+
+  const record = await createPasswordResetToken(user.id);
+  const baseUrl = origin ?? (await getAuthUrl()) ?? "http://localhost:3000";
+  const resetUrl = buildPasswordResetUrl(baseUrl, record.token);
+  const emailed = await sendPasswordResetEmail(user.email, resetUrl);
+
+  return { sent: emailed, resetUrl, email: user.email };
+}
+
+/**
+ * Admin action: set a user's password directly (no current password needed).
+ */
+export async function setUserPassword(
+  userId: string,
+  newPassword: string
+): Promise<void> {
+  if (newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters.");
+  }
+
+  const db = await readUsersDb();
+  const user = db.users.find((entry) => entry.id === userId);
+  if (!user) throw new Error("User not found.");
+
+  user.passwordHash = await bcrypt.hash(newPassword, 12);
+  await writeUsersDb(db);
+
+  const { removePasswordResetTokensForUser } = await import("./password-reset");
+  await removePasswordResetTokensForUser(userId);
+}
