@@ -1,0 +1,13 @@
+{
+  "users": [
+    {
+      "id": "6e6525fe-29e2-45c0-93ed-24e08c7f90f9",
+      "name": "BeOne Admin",
+      "email": "admin@beone.com",
+      "username": "admin",
+      "passwordHash": "$2b$12$bFqhY69H3KK.kIkHB63vlOnXxR86xpH3l7yQfD.3XKeQKxXhpv/F2",
+      "role": "admin",
+      "createdAt": "2026-07-22T21:47:00.000Z"
+    }
+  ]
+}

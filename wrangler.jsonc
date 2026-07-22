@@ -1,0 +1,39 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beone-reputation",
+  "workers_dev": true,
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "beone-reputation"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "kv_namespaces": [
+    {
+      "binding": "APP_DATA_KV",
+      "id": "c5cf4dea542c4ddfab24a8ef3c94fbc0",
+      "preview_id": "970bc542f4fd4650ade5cbe58e507a5f"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "beonereputation.vibecodeflow.com",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "CLOUDFLARE_WORKERS": "1",
+    "AUTH_ADMIN_EMAILS": "admin@beone.com,zach@zachre.com",
+    "AUTH_URL": "https://beonereputation.vibecodeflow.com"
+  }
+}

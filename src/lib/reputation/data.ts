@@ -1,4 +1,4 @@
-export type HomeTab = "overview" | "glassdoor" | "indeed" | "replies";
+export type HomeTab = "overview" | "glassdoor" | "indeed" | "replies" | "competitors";
 
 export type ReplyDraft = {
   id: string;
@@ -454,7 +454,6 @@ export const TRENDS = {
       company: 3.1,
       ceo: 74,
       recommend: 51,
-      source: "Wayback · BeiGene overview",
     },
     {
       period: "Feb 2026",
@@ -462,7 +461,6 @@ export const TRENDS = {
       company: 3.9,
       ceo: 86,
       recommend: 73,
-      source: "Wayback · BeOne overview",
     },
     {
       period: "Jul 2026",
@@ -470,7 +468,6 @@ export const TRENDS = {
       company: 3.6,
       ceo: 80,
       recommend: 59,
-      source: "Live · BeOne overview",
     },
   ],
   indeedCompanyByYear: [
