@@ -40,21 +40,157 @@ export const BEONE = {
         rating: 2.0,
         role: "Anonymous · former · Hopewell, NJ",
         title: "Not a great place to work",
-        summary: "Decent pay; overwork, no promo, micromanagement, toxic senior mgmt",
+        summary:
+          "Decent pay, benefits, stock · Overworked; no development/promo; micromanagement; toxic senior mgmt finger-pointing",
       },
       {
         date: "Jun 24, 2026",
         rating: 1.0,
-        role: "Anonymous · former · Hopewell, NJ",
+        role: "Anonymous · former, more than 3 years · Hopewell, NJ",
         title: "Toxic culture and poor work life balance",
-        summary: "Competitive package; toxic site leadership; corners cut for timelines",
+        summary:
+          "Competitive package with bonus/RSUs · Toxic site leadership; poor WLB; corners cut to meet timelines",
       },
       {
         date: "Jun 23, 2026",
         rating: 1.0,
-        role: "Senior manager · current · San Carlos",
+        role: "Senior manager · current, more than 1 year · San Carlos, CA",
         title: "Chaotic leadership with no real direction",
-        summary: "Overwork, no recognition, thin equity, layoffs, zero culture",
+        summary:
+          "Free snacks/parking only notable perks · Chaotic leadership; little else positive after 15 years in industry",
+      },
+      {
+        date: "Jun 22, 2026",
+        rating: 5.0,
+        role: "SSU/CTA · current, more than 1 year",
+        title: "Good salary and benefits, but high workload at times",
+        summary:
+          "Good salary, fully remote, training, benefits, WLB · Workload can be very high; remote not for everyone",
+      },
+      {
+        date: "Jun 20, 2026",
+        rating: 2.0,
+        role: "Director, IT · current, more than 5 years · Cambridge, MA",
+        title: "Healthy pay but poor leadership and long hours",
+        summary:
+          "Healthy pay/comp, global exposure · Disrespectful leadership; no strategy; expects 14–16 hour days",
+      },
+      {
+        date: "Jun 19, 2026",
+        rating: 1.0,
+        role: "Clinical operations · former, more than 5 years",
+        title: "No work life balance",
+        summary:
+          "Competitive salary, remote · Constant restructuring; CRO-like metrics/travel focus; demanding workload",
+      },
+      {
+        date: "Jun 10, 2026",
+        rating: 5.0,
+        role: "Anonymous · current",
+        title: "Strong leadership with good outlook",
+        summary:
+          "Strong discovery pipeline; stable leadership; biotech flexibility · Early meetings; uneven headcount",
+      },
+      {
+        date: "Jun 9, 2026",
+        rating: 3.0,
+        role: "Associate director, clinical development · current, more than 5 years · San Carlos, CA",
+        title: "Professional development opportunities overshadowed by poor transparency",
+        summary:
+          "Professional development; many projects · Poor WLB/transparency; limited promo Ex-China; hidden layoffs",
+      },
+      {
+        date: "Jun 5, 2026",
+        rating: 3.0,
+        role: "Data scientist · current, more than 3 years",
+        title: "Good work perks but challenging commute",
+        summary: "Team lunch and commute support · Challenging commute; mixed day-to-day work experience",
+      },
+      {
+        date: "May 21, 2026",
+        rating: 1.0,
+        role: "Director, IT · former, more than 5 years · Emeryville, CA",
+        title: "Be Gone",
+        summary:
+          "Some great people; learn CN market · Toxic culture; incoherent leadership; unreasonable expectations",
+      },
+      {
+        date: "Apr 24, 2026",
+        rating: 5.0,
+        role: "Anonymous · current",
+        title: "Strong reputation with a collaborative, patient-centered culture",
+        summary:
+          "Strong oncology reputation; patient-centered; innovative therapies across heme and solid tumors",
+      },
+      {
+        date: "Apr 22, 2026",
+        rating: 5.0,
+        role: "Director · current, more than 5 years · San Francisco, CA",
+        title: "High pay and impact, but expect longer hours",
+        summary:
+          "Bigger impact than big pharma with less startup risk; high pay; flexible hours · Longer hours; off-hour regional calls",
+      },
+      {
+        date: "Apr 21, 2026",
+        rating: 4.0,
+        role: "Executive director medical affairs · former, more than 5 years",
+        title: "Exciting times to develop Europe Medical Affairs",
+        summary:
+          "Entrepreneurial spirit; Medical Affairs well embedded · Slow decisions; low empowerment",
+      },
+      {
+        date: "Apr 19, 2026",
+        rating: 1.0,
+        role: "Finance organization · current, more than 3 years · New York, NY",
+        title: "Good pay but poor management and bias issues",
+        summary:
+          "Good compensation vs industry · Clueless management; process theater; meeting overload; bias concerns",
+      },
+      {
+        date: "Apr 14, 2026",
+        rating: 5.0,
+        role: "HRBP · former, more than 3 years",
+        title: "GOOD CHOICE",
+        summary: "Nice team, benefits, flexible hours, career path · Heavy workload and pressure",
+      },
+      {
+        date: "Apr 6, 2026",
+        rating: 4.0,
+        role: "Regional operations manager · current, more than 1 year",
+        title: "startup",
+        summary:
+          "Speed, compensation, stock, science scope · Weak SOPs; politics; unclear decisions; cost focus",
+      },
+      {
+        date: "Mar 22, 2026",
+        rating: 1.0,
+        role: "Anonymous · current, more than 1 year",
+        title: "Concentration camp",
+        summary:
+          "No sustainable pros · Forced work without training/support; strongly negative overall experience",
+      },
+      {
+        date: "Mar 6, 2026",
+        rating: 2.0,
+        role: "Clinical trial manager · former, less than 1 year · Hopewell, NJ",
+        title: "Weigh your priorities.",
+        summary: "Competitive pay and benefits · No work-life balance",
+      },
+      {
+        date: "Mar 4, 2026",
+        rating: 1.0,
+        role: "Director · current, more than 3 years · San Carlos, CA",
+        title: "Huge negative change",
+        summary:
+          "Many nice people; San Carlos office nice · Culture shift to toxic big-pharma imitation; failed transition",
+      },
+      {
+        date: "Mar 2, 2026",
+        rating: 1.0,
+        role: "Senior CTMA · current, more than 3 years",
+        title: "Does not provide career path for current employees",
+        summary:
+          "Can learn clinical ops deeply · No promotion pathway even with strong performance",
       },
     ],
   },
@@ -316,8 +452,8 @@ export const TRENDS = {
       period: "Mar 2022",
       label: "Mar 2022",
       company: 3.1,
-      ceo: null as number | null,
-      recommend: null as number | null,
+      ceo: 74,
+      recommend: 51,
       source: "Wayback · BeiGene overview",
     },
     {
@@ -344,7 +480,6 @@ export const TRENDS = {
     { period: "2025", company: 4.5 },
     { period: "2026", company: 1.0 },
   ],
-  indeedCeo: [
-    { period: "Jul 2026", ceo: 79 },
-  ],
+  /** Indeed only publishes a current CEO figure, not a yearly series. */
+  indeedCeoCurrent: 79,
 };

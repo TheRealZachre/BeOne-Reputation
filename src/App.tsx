@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import {
   Bar,
@@ -25,6 +25,90 @@ import {
   type ReplyDraft,
 } from "./data";
 import "./App.css";
+
+type SortDir = "asc" | "desc";
+
+type SortColumn<T> = {
+  key: keyof T;
+  label: string;
+  type?: "string" | "number";
+};
+
+function compareValues(a: unknown, b: unknown, type: "string" | "number") {
+  if (type === "number") {
+    return Number(a ?? 0) - Number(b ?? 0);
+  }
+  return String(a ?? "").localeCompare(String(b ?? ""), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
+function useSortedRows<T>(rows: T[], columns: SortColumn<T>[], initialKey?: keyof T) {
+  const [sortKey, setSortKey] = useState<keyof T | null>(initialKey ?? null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const sorted = useMemo(() => {
+    if (sortKey == null) return rows;
+    const col = columns.find((c) => c.key === sortKey);
+    const type = col?.type ?? "string";
+    const copy = [...rows];
+    copy.sort((left, right) => {
+      const result = compareValues(left[sortKey], right[sortKey], type);
+      return sortDir === "asc" ? result : -result;
+    });
+    return copy;
+  }, [rows, columns, sortKey, sortDir]);
+
+  const toggle = (key: keyof T) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    setSortDir("asc");
+  };
+
+  return { sorted, sortKey, sortDir, toggle };
+}
+
+function SortableHead<T>({
+  columns,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  columns: SortColumn<T>[];
+  sortKey: keyof T | null;
+  sortDir: SortDir;
+  onSort: (key: keyof T) => void;
+}) {
+  return (
+    <thead>
+      <tr>
+        {columns.map((col) => {
+          const active = sortKey === col.key;
+          const arrow = !active ? "↕" : sortDir === "asc" ? "↑" : "↓";
+          return (
+            <th key={String(col.key)} scope="col">
+              <button
+                type="button"
+                className={`sort-btn${active ? " active" : ""}`}
+                onClick={() => onSort(col.key)}
+                aria-label={`Sort by ${col.label}`}
+              >
+                <span>{col.label}</span>
+                <span className="sort-arrow" aria-hidden="true">
+                  {arrow}
+                </span>
+              </button>
+            </th>
+          );
+        })}
+      </tr>
+    </thead>
+  );
+}
 
 function CopyReply({ reply }: { reply: ReplyDraft }) {
   const [copied, setCopied] = useState(false);
@@ -56,6 +140,46 @@ function CopyReply({ reply }: { reply: ReplyDraft }) {
   );
 }
 
+const GLASSDOOR_TREND_COLUMNS: SortColumn<(typeof TRENDS.glassdoor)[number]>[] = [
+  { key: "label", label: "Snapshot", type: "string" },
+  { key: "company", label: "Company ★", type: "number" },
+  { key: "ceo", label: "CEO approval", type: "number" },
+  { key: "recommend", label: "Recommend", type: "number" },
+];
+
+const INDEED_TREND_COLUMNS: SortColumn<(typeof TRENDS.indeedCompanyByYear)[number]>[] = [
+  { key: "period", label: "Year", type: "string" },
+  { key: "company", label: "Company avg ★", type: "number" },
+];
+
+const GLASSDOOR_REVIEW_COLUMNS: SortColumn<(typeof BEONE.glassdoor.recentReviews)[number]>[] = [
+  { key: "date", label: "Date", type: "string" },
+  { key: "rating", label: "Rating", type: "number" },
+  { key: "role", label: "Role", type: "string" },
+  { key: "title", label: "Headline", type: "string" },
+  { key: "summary", label: "Core message", type: "string" },
+];
+
+function ChartPanel({
+  platform,
+  subtitle,
+  children,
+}: {
+  platform: "Glassdoor" | "Indeed";
+  subtitle: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="chart-panel">
+      <div className="chart-panel-head">
+        <h3 className="chart-platform-name">{platform}</h3>
+        <p className="muted chart-subtitle">{subtitle}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function RatingTrendsSection() {
   const glassdoorChart = TRENDS.glassdoor.map((d) => ({
     period: d.label,
@@ -63,19 +187,21 @@ function RatingTrendsSection() {
     ceo: d.ceo,
   }));
 
+  const glassdoorSort = useSortedRows(TRENDS.glassdoor, GLASSDOOR_TREND_COLUMNS);
+  const indeedSort = useSortedRows(TRENDS.indeedCompanyByYear, INDEED_TREND_COLUMNS);
+
   return (
     <section className="stack tight">
       <h2>Rating trends — company & CEO</h2>
       <p className="muted">
-        Glassdoor snapshots from Wayback (Mar 2022, Feb 2026) and live Jul 22, 2026.
-        Indeed company averages are the platform’s published year buckets.
+        Named charts below: <strong>Glassdoor</strong> (point-in-time snapshots) and{" "}
+        <strong>Indeed</strong> (yearly company averages). Click any column header to sort.
       </p>
 
-      <div className="two-col">
-        <div>
-          <h3>Glassdoor — company rating & CEO approval</h3>
-          <div className="chart">
-            <ResponsiveContainer width="100%" height={280}>
+      <div className="chart-stack">
+        <ChartPanel platform="Glassdoor" subtitle="Company rating & CEO approval over time">
+          <div className="chart" aria-label="Glassdoor rating trend chart">
+            <ResponsiveContainer width="100%" height={320}>
               <ComposedChart data={glassdoorChart} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3344" />
                 <XAxis dataKey="period" stroke="#9aa4b2" />
@@ -102,7 +228,6 @@ function RatingTrendsSection() {
                   stroke="#f0a202"
                   strokeWidth={2.5}
                   dot={{ r: 5 }}
-                  connectNulls
                 />
                 <Line
                   yAxisId="ceo"
@@ -112,21 +237,38 @@ function RatingTrendsSection() {
                   stroke="#4f8cff"
                   strokeWidth={2.5}
                   dot={{ r: 5 }}
-                  connectNulls
                 />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
           <p className="muted">
-            Company: 3.1 → 3.9 → 3.6. CEO approval: 86% (Feb) → 80% (Jul). Mar 2022 CEO % not
-            available in the archive snapshot.
+            Company: 3.1 → 3.9 → 3.6. CEO: 74% → 86% → 80%. Recommend: 51% → 73% → 59%.
           </p>
-        </div>
+          <div className="table-wrap">
+            <table aria-label="Glassdoor rating trend data">
+              <SortableHead
+                columns={GLASSDOOR_TREND_COLUMNS}
+                sortKey={glassdoorSort.sortKey}
+                sortDir={glassdoorSort.sortDir}
+                onSort={glassdoorSort.toggle}
+              />
+              <tbody>
+                {glassdoorSort.sorted.map((row) => (
+                  <tr key={`gd-${row.period}`}>
+                    <td>{row.label}</td>
+                    <td>{row.company.toFixed(1)}</td>
+                    <td>{row.ceo}%</td>
+                    <td>{row.recommend}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </ChartPanel>
 
-        <div>
-          <h3>Indeed — company rating by year</h3>
-          <div className="chart">
-            <ResponsiveContainer width="100%" height={280}>
+        <ChartPanel platform="Indeed" subtitle="Company rating by year">
+          <div className="chart" aria-label="Indeed rating trend chart">
+            <ResponsiveContainer width="100%" height={320}>
               <ComposedChart data={TRENDS.indeedCompanyByYear}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3344" />
                 <XAxis dataKey="period" stroke="#9aa4b2" />
@@ -139,44 +281,32 @@ function RatingTrendsSection() {
             </ResponsiveContainer>
           </div>
           <p className="muted">
-            Climbed through 2025 (4.5), then 2026 YTD fell to 1.0 on a thin early sample. Current
-            CEO approval on Indeed is 79% (no public yearly CEO series).
+            Year buckets from Indeed’s rating overview: 2.33 → 3.20 → 3.25 → 4.50 → 1.00 (2026
+            YTD, thin sample). Current CEO approval is {TRENDS.indeedCeoCurrent}% — not tied to a
+            year.
           </p>
-        </div>
-      </div>
-
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Period</th>
-              <th>Platform</th>
-              <th>Company rating</th>
-              <th>CEO approval</th>
-              <th>Source</th>
-            </tr>
-          </thead>
-          <tbody>
-            {TRENDS.glassdoor.map((row) => (
-              <tr key={`gd-${row.period}`}>
-                <td>{row.label}</td>
-                <td>Glassdoor</td>
-                <td>{row.company.toFixed(1)}</td>
-                <td>{row.ceo == null ? "—" : `${row.ceo}%`}</td>
-                <td>{row.source}</td>
-              </tr>
-            ))}
-            {TRENDS.indeedCompanyByYear.map((row) => (
-              <tr key={`in-${row.period}`}>
-                <td>{row.period}</td>
-                <td>Indeed</td>
-                <td>{row.company.toFixed(2)}</td>
-                <td>{row.period === "2026" ? "79% (current)" : "—"}</td>
-                <td>Indeed rating overview</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          <div className="table-wrap">
+            <table aria-label="Indeed rating trend data">
+              <SortableHead
+                columns={INDEED_TREND_COLUMNS}
+                sortKey={indeedSort.sortKey}
+                sortDir={indeedSort.sortDir}
+                onSort={indeedSort.toggle}
+              />
+              <tbody>
+                {indeedSort.sorted.map((row) => (
+                  <tr key={`in-${row.period}`}>
+                    <td>{row.period}</td>
+                    <td>{row.company.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="muted">
+            CEO approval (current only): <strong>{TRENDS.indeedCeoCurrent}%</strong>
+          </p>
+        </ChartPanel>
       </div>
     </section>
   );
@@ -300,6 +430,7 @@ function OverviewTab() {
 
 function GlassdoorTab() {
   const cats = [...BEONE.glassdoor.categories].reverse();
+  const glassdoorReviewSort = useSortedRows(BEONE.glassdoor.recentReviews, GLASSDOOR_REVIEW_COLUMNS);
 
   return (
     <div className="stack">
@@ -362,20 +493,18 @@ function GlassdoorTab() {
       </section>
 
       <section>
-        <h2>Most recent reviews</h2>
+        <h2>Last 20 Glassdoor reviews</h2>
+        <p className="muted">Most recent, sorted by date on Glassdoor · captured Jul 22, 2026</p>
         <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Rating</th>
-                <th>Role</th>
-                <th>Headline</th>
-                <th>Core message</th>
-              </tr>
-            </thead>
+          <table aria-label="Last 20 Glassdoor reviews">
+            <SortableHead
+              columns={GLASSDOOR_REVIEW_COLUMNS}
+              sortKey={glassdoorReviewSort.sortKey}
+              sortDir={glassdoorReviewSort.sortDir}
+              onSort={glassdoorReviewSort.toggle}
+            />
             <tbody>
-              {BEONE.glassdoor.recentReviews.map((r) => (
+              {glassdoorReviewSort.sorted.map((r) => (
                 <tr key={`${r.date}-${r.title}`}>
                   <td>{r.date}</td>
                   <td>{r.rating.toFixed(1)}</td>
@@ -400,8 +529,9 @@ function GlassdoorTab() {
       </div>
 
       <section>
-        <h2>Company & CEO rating over time</h2>
-        <div className="chart">
+        <h2>Glassdoor</h2>
+        <p className="muted">Company rating & CEO approval over time</p>
+        <div className="chart" aria-label="Glassdoor rating trend chart">
           <ResponsiveContainer width="100%" height={280}>
             <ComposedChart
               data={TRENDS.glassdoor.map((d) => ({
@@ -424,7 +554,6 @@ function GlassdoorTab() {
                 stroke="#f0a202"
                 strokeWidth={2.5}
                 dot={{ r: 5 }}
-                connectNulls
               />
               <Line
                 yAxisId="ceo"
@@ -434,13 +563,12 @@ function GlassdoorTab() {
                 stroke="#4f8cff"
                 strokeWidth={2.5}
                 dot={{ r: 5 }}
-                connectNulls
               />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
         <p className="muted">
-          Left axis: company stars · Right axis: CEO approval % · Sources: Wayback + live
+          Company 3.1 → 3.9 → 3.6 · CEO 74% → 86% → 80% · Sources: Wayback + live
         </p>
       </section>
     </div>
@@ -493,8 +621,9 @@ function IndeedTab() {
           </div>
         </section>
         <section>
-          <h2>Company rating by year & CEO</h2>
-          <div className="chart">
+          <h2>Indeed</h2>
+          <p className="muted">Company rating by year</p>
+          <div className="chart" aria-label="Indeed rating trend chart">
             <ResponsiveContainer width="100%" height={260}>
               <ComposedChart data={TRENDS.indeedCompanyByYear}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3344" />

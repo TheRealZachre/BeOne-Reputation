@@ -229,6 +229,66 @@ th {
   background: var(--bg-soft);
 }
 
+.chart-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.chart-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.chart-panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chart-platform-name {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+}
+
+.chart-subtitle {
+  margin: 0;
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sort-btn:hover,
+.sort-btn.active {
+  color: var(--text);
+}
+
+.sort-arrow {
+  opacity: 0.55;
+  font-size: 0.8em;
+}
+
+.sort-btn.active .sort-arrow {
+  opacity: 1;
+  color: var(--accent);
+}
+
 tr:last-child td {
   border-bottom: none;
 }
