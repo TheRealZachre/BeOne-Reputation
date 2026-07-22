@@ -14,7 +14,10 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const { pathname } = nextUrl;
 
-      const isAuthRoute = pathname.startsWith("/login");
+      const isAuthRoute =
+        pathname.startsWith("/login") ||
+        pathname.startsWith("/forgot-password") ||
+        pathname.startsWith("/reset-password");
       const isAuthApi = pathname.startsWith("/api/auth");
       const isAdminRoute =
         pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
