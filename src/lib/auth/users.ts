@@ -1,7 +1,15 @@
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import { readJsonCache, writeJsonCache } from "@/lib/data/json-cache";
+import {
+  buildPasswordResetUrl,
+  createPasswordResetToken,
+  findValidPasswordResetToken,
+  markPasswordResetTokenUsed,
+  sendPasswordResetEmail,
+} from "./password-reset";
 import { resolveRoleForEmail } from "./roles";
+import { getAuthUrl } from "@/lib/env";
 import type { PublicUser, UserRecord, UserRole, UsersDatabase } from "./types";
 
 const USERS_FILE = "reputation-users.json";
@@ -122,6 +130,9 @@ export async function deleteUser(
 
   db.users = db.users.filter((entry) => entry.id !== userId);
   await writeUsersDb(db);
+
+  const { removePasswordResetTokensForUser } = await import("./password-reset");
+  await removePasswordResetTokensForUser(userId);
 }
 
 export async function isUserAdminById(userId: string): Promise<boolean> {
@@ -186,4 +197,49 @@ export function isAdminUser(
   user: Pick<UserRecord, "role"> | undefined
 ): boolean {
   return user?.role === "admin";
+}
+
+export async function resetPasswordWithToken(
+  token: string,
+  newPassword: string
+): Promise<UserRecord> {
+  const resetRecord = await findValidPasswordResetToken(token);
+  if (!resetRecord) {
+    throw new Error("This reset link is invalid or has expired.");
+  }
+
+  if (newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters.");
+  }
+
+  const db = await readUsersDb();
+  const user = db.users.find((entry) => entry.id === resetRecord.userId);
+  if (!user) throw new Error("User not found.");
+
+  user.passwordHash = await bcrypt.hash(newPassword, 12);
+  await writeUsersDb(db);
+  await markPasswordResetTokenUsed(token);
+  return user;
+}
+
+export async function requestPasswordReset(
+  login: string,
+  origin?: string
+): Promise<{ sent: boolean; devResetUrl?: string }> {
+  const user = await findUserByLogin(login);
+  if (!user?.passwordHash) {
+    return { sent: false };
+  }
+
+  const record = await createPasswordResetToken(user.id);
+  const baseUrl = origin ?? (await getAuthUrl()) ?? "http://localhost:3000";
+  const resetUrl = buildPasswordResetUrl(baseUrl, record.token);
+  const emailed = await sendPasswordResetEmail(user.email, resetUrl);
+
+  if (emailed) return { sent: true };
+
+  // Email delivery is not configured yet: surface the link so the reset flow
+  // still works. Once RESEND_API_KEY / AUTH_EMAIL_FROM are set, links are
+  // emailed instead of shown.
+  return { sent: false, devResetUrl: resetUrl };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
@@ -11,6 +12,7 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
   const authError = searchParams.get("error");
+  const resetDone = searchParams.get("reset") === "1";
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(
@@ -61,6 +63,21 @@ export function LoginForm() {
           required
         />
       </label>
+
+      <div className="flex justify-end">
+        <Link
+          href="/forgot-password"
+          className="text-sm font-medium text-brand-indigo hover:text-brand-indigo-bright"
+        >
+          Forgot password?
+        </Link>
+      </div>
+
+      {resetDone && (
+        <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          Your password has been updated. Sign in with your new password.
+        </p>
+      )}
 
       {error && <p className="text-sm text-rose-600">{error}</p>}
 
