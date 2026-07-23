@@ -24,6 +24,8 @@ import {
 } from "@/lib/reputation/data";
 import { RatingTrendsSection } from "./RatingTrendsSection";
 import { CompetitorsTab } from "./CompetitorsPage";
+import { PlaybookTab } from "./ScorePlaybook";
+import { RefreshButton } from "./RefreshButton";
 import { CopyReply, SortableHead, useSortedRows, type SortColumn } from "./shared";
 
 const GLASSDOOR_REVIEW_COLUMNS: SortColumn<(typeof BEONE.glassdoor.recentReviews)[number]>[] = [
@@ -161,6 +163,8 @@ function GlassdoorTab() {
         <span className="pill pill-warn">Comp −4% YoY</span>
         <span className="pill">CEO: {BEONE.glassdoor.ceoName}</span>
       </div>
+
+      <RefreshButton platform="Glassdoor" />
 
       <div className="stats">
         <div className="stat">
@@ -307,6 +311,8 @@ function IndeedTab() {
         <span className="pill pill-danger">2026 YTD 1.0★</span>
         <span className="pill pill-warn">Wellbeing {BEONE.indeed.wellbeing}</span>
       </div>
+
+      <RefreshButton platform="Indeed" />
 
       <div className="stats">
         <div className="stat">
@@ -471,6 +477,7 @@ export function ReputationHome({ tab }: { tab: HomeTab }) {
           {tab === "glassdoor" && <GlassdoorTab />}
           {tab === "indeed" && <IndeedTab />}
           {tab === "competitors" && <CompetitorsTab />}
+          {tab === "playbook" && <PlaybookTab />}
           {tab === "replies" && <RepliesTab />}
         </main>
 
